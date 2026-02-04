@@ -1,0 +1,290 @@
+FINIDE – Personal Finance & CA Assistant
+=====================================
+
+1. Problem Statement
+--------------------
+Young Indian earners (18–30) who are new to salary, EMIs, savings, and investing often:
+- Track money manually in Excel/notes across income, rent, EMIs, and lifestyle expenses.
+- Don’t know how much is truly "needs" vs "wants".
+- Don’t know their emergency fund requirement.
+- Don’t know how much they can safely invest every month.
+- Receive generic advice; CAs/experts spend a lot of time just understanding their situation.
+
+How might we create a **personal finance coach + CA assistant** that automatically structures their finances, explains recommendations in a transparent way, and hands off a clean portfolio to a CA when deeper guidance is needed—so they can move from paycheck-to-paycheck living to structured wealth creation aligned with their goals?
+
+
+2. Target Users
+---------------
+- Age: 18–30, primarily in India.
+- Profiles:
+  - First/second job, learning to manage salary and PF.
+  - Young professionals with EMIs (education loan, bike/car, credit card).
+  - People sending money to parents, with strong family obligations.
+- Digital behaviour:
+  - Comfortable with apps and AI chat.
+  - Used to UPI, banking apps, and Instagram-style UI.
+
+
+3. Core Product Capabilities
+----------------------------
+
+3.1 Onboarding & Profile
+- Capture: age, job duration, city, salary band.
+- Risk appetite: conservative / moderate / aggressive.
+- High-level goals (e.g., "Europe trip", "Emergency fund", "Wedding").
+
+3.2 Income Tracking
+- Salary (in-hand).
+- PF contributions (employee + employer) – informational.
+- Freelance/side income.
+- Other inflows (bonus, gifts, etc.).
+
+3.3 Expense Tracking – Needs vs Wants
+- Needs examples:
+  - Rent.
+  - Utilities (electricity, water, internet if essential).
+  - Food/groceries.
+  - Phone bill (basic plan).
+  - Transport to work.
+  - Parent contribution.
+  - Health insurance, life insurance premiums.
+- Wants examples:
+  - OTT subscriptions (Netflix, Spotify, etc.).
+  - Eating out, coffee, parties.
+  - Online shopping / lifestyle.
+  - Travel, luxury spends.
+
+3.4 Debts & Investments
+- EMIs: education loan, personal loan, bike/car, credit card.
+- Existing investments:
+  - SIPs (mutual funds).
+  - Lump sum mutual funds.
+  - FDs/recurring deposits.
+  - Gold.
+- Current bank/cash balance.
+
+3.5 Computation & Insights
+- Monthly aggregates:
+  - Total income.
+  - Total needs.
+  - Total wants.
+  - Total investments.
+  - Surplus or deficit = income - needs - wants - investments.
+- Emergency fund:
+  - Target = 6 × (needs + critical EMIs).
+  - Status: current liquid buffer vs target (%).
+- Saver classification:
+  - Consistent saver.
+  - Inconsistent saver.
+  - Non-saver (earning but not saving meaningfully).
+- Recommendations:
+  - Prioritise building emergency fund before aggressive investing.
+  - Suggested SIP split based on age and risk appetite.
+  - Suggestions to cut wants and accelerate EF/goals.
+
+3.6 Goals & Auto Classification
+- User inputs:
+  - Goal name, target amount, target date, priority.
+- System classifies:
+  - Short term (< 3 years).
+  - Medium term (3–7 years).
+  - Long term (> 7 years).
+- System flags:
+  - Goals that can be delayed if EF is not complete.
+
+3.7 AI Financial Coach
+- Free guest chat (no login needed):
+  - Explain basic budgeting and EF concepts.
+  - Allow user to roughly describe income/expenses and get a sample plan.
+- Logged-in chat:
+  - Uses real stored data (income, expenses, goals) to answer:
+    - "Where am I overspending?"
+    - "How much can I invest monthly?"
+    - "By when can I realistically hit this goal?"
+- Explainability:
+  - Every recommendation comes with:
+    - Inputs used.
+    - Formula / assumptions.
+    - Plain-language explanation suitable for beginners.
+
+3.8 Chartered Accountant (CA) Section
+- CA discovery:
+  - List of verified CAs with profile, experience, specialisation.
+- Booking:
+  - User can choose a CA, pick slot, specify topic (tax planning, investments, insurance, etc.).
+- Portfolio auto-generation (for CA):
+  - Income breakdown.
+  - Needs vs wants split.
+  - Emergency fund target & status.
+  - Existing investments & risk appetite.
+  - Lifestyle patterns (spend categories).
+  - Goals and surplus capacity.
+- Benefit:
+  - CA saves time on basic screening and can directly go into strategy.
+
+3.9 Behaviour Design – Hooked Model
+- Trigger:
+  - End-of-month notification/email: "Time for your monthly money check-in".
+- Action:
+  - User opens the app and fills/updates monthly expenses (quick form with smart defaults from previous month).
+- Variable Reward:
+  - Month-on-month comparison:
+    - More/less savings.
+    - Fun "roast" mode for overspending.
+    - Positive reinforcement when EF or goals move forward.
+- Investment (in the product):
+  - User adds more detailed data (e.g., new EMI, parent health expense, new goal), making future insights more accurate.
+  - This deepens attachment to the app and improves recommendation quality.
+
+
+4. High-Level Technical Architecture
+------------------------------------
+
+4.1 Frontend – `finde-frontend`
+- Stack:
+  - React Native (Expo, latest SDK).
+  - TypeScript.
+  - React Navigation (stack + tabs).
+  - Redux Toolkit for state management.
+  - Axios-based API client.
+- App structure (tentative):
+  - /src
+    - app or navigation (root navigation setup).
+    - screens/
+      - Auth/ (Onboarding, Login, Signup).
+      - Dashboard/.
+      - Income/.
+      - Expenses/.
+      - Investments/.
+      - Goals/.
+      - CA/ (CA list, CA detail, booking).
+      - AIChat/ (guest chat, logged-in chat).
+      - Settings/.
+    - components/
+      - UI primitives (Button, Card, Input, Typography, etc.).
+      - Domain components (ExpenseList, GoalCard, EmergencyFundProgress, etc.).
+    - store/
+      - userSlice, financeSlice, authSlice, uiSlice.
+    - services/
+      - apiClient.ts, authApi.ts, financeApi.ts, caApi.ts, aiApi.ts.
+    - utils/
+      - formatting, constants, validation helpers.
+
+4.2 Backend – `finde-backend` (Spring Boot Microservices)
+- Services:
+  1) eureka-server
+     - Spring Cloud Netflix Eureka server.
+     - Acts as service registry.
+
+  2) api-gateway
+     - Spring Cloud Gateway.
+     - Routes: /auth/**, /finance/**, /ca/**, /ai/** to respective services.
+     - CORS handling, basic auth filtering.
+
+  3) auth-service
+     - User registration and login.
+     - Password storage: MD5 hashing initially (with clear note to upgrade to salted, strong hash later).
+     - Issues JWT tokens for stateless auth.
+
+  4) finance-service
+     - User profile (age, job duration, risk appetite).
+     - Income, expenses, investments, EMIs, goals.
+     - Computes monthly snapshots:
+       - Needs / wants / investments.
+       - Surplus/deficit.
+       - Emergency fund target & status.
+       - Saver classification.
+
+  5) ca-service
+     - CA registration/verification.
+     - CA listing API.
+     - Booking sessions.
+     - Generates structured financial portfolio for each booked session by calling finance-service.
+
+  6) ai-service (or logic inside finance-service initially)
+     - Endpoints for AI chat:
+       - /ai/chat/guest.
+       - /ai/chat/user.
+     - Orchestrates calls to external LLM API (implementation detail).
+     - Can apply rule-based logic to provide transparent explanations alongside AI responses.
+
+- Data stores:
+  - Each microservice maintains its own database (e.g., Postgres/MySQL per service) to keep boundaries clean.
+
+
+5. Security (Initial Plan)
+--------------------------
+- MD5-based hashing of passwords as a starting point (per current requirement).
+- JWT-based authentication handled by auth-service and validated at the gateway.
+- Clear roadmap to move to stronger password hashing (e.g., BCrypt + salt) in a future phase.
+
+
+6. Development Phases & Milestones
+----------------------------------
+
+Phase 0 – Blueprint & Setup
+- Create this blueprint file.
+- Finalise high-level architecture and technology choices.
+- Plan folder structure:
+  - finde-frontend/
+  - finde-backend/
+
+Phase 1 – Frontend Foundations (Expo + Navigation)
+- Initialize Expo React Native app in finde-frontend.
+- Add TypeScript, ESLint/Prettier, basic theming.
+- Set up React Navigation:
+  - Auth stack.
+  - Main bottom tab navigator (Dashboard, Track, Grow, Learn/AI, CA).
+- Implement basic screens scaffolding with mocked data.
+
+Phase 2 – Frontend Finance Flows & AI UI
+- Implement forms and local state for:
+  - Income.
+  - Expenses (needs vs wants).
+  - EMIs and investments.
+  - Goals, including auto short/medium/long classification on the client.
+- Implement calculation logic on the frontend initially:
+  - Needs, wants, investments totals.
+  - Surplus/deficit.
+  - Emergency fund target & status.
+- Implement the AI chat UI:
+  - Guest chat screen (no auth).
+  - Logged-in chat (uses dummy API until backend is ready).
+- Implement CA listing and booking UI with mocked data.
+
+Phase 3 – Backend Foundations (Microservices + Eureka + Gateway)
+- Create multi-module Spring Boot project in finde-backend.
+- Set up:
+  - eureka-server.
+  - api-gateway.
+  - auth-service (MD5 + JWT).
+  - finance-service (basic CRUD for income, expenses, etc.).
+  - ca-service (CA list + bookings).
+- Ensure all services register with Eureka and gateway routes requests correctly.
+
+Phase 4 – Frontend–Backend Integration
+- Replace mocked frontend APIs with real backend endpoints.
+- Implement auth flow end-to-end (signup, login, token storage).
+- Persist finance data server-side and sync with frontend state.
+- Integrate CA booking with real backend logic and portfolio generation.
+
+Phase 5 – Refinement & Behavioural Features
+- Implement monthly trigger logic (notifications, reminders – mobile side to start).
+- Improve variable reward UX (comparisons, roasting, progress visuals).
+- Add more detailed explainer views for calculations.
+- Add minimal analytics/tracking (events like "added income", "completed month check-in").
+
+
+7. Implementation Log
+---------------------
+(A running log of key changes and milestones. Dates in YYYY-MM-DD.)
+
+[2026-01-03] INIT: Created blueprint.txt with problem definition, scope, architecture, and phased plan.
+[2026-01-03] FE: Scaffolding React Native Expo app (navigation container, auth stack, main tab navigator, Redux store with auth/finance slices, basic TS config).
+
+# Future entries (examples):
+# [2026-01-04] FE: Initialized Expo project (finde-frontend) with TypeScript and basic navigation.
+# [2026-01-05] FE: Implemented onboarding and auth screens with mocked API.
+# [2026-01-10] FE: Added income/expense forms and local calculation of EF & surplus.
+# [2026-01-17] BE: Created Spring Boot multi-module project with eureka-server and api-gateway.
+# [2026-01-25] INTEGRATION: Connected frontend auth and finance flows to backend services.
